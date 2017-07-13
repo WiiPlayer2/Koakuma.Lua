@@ -15,7 +15,7 @@ namespace Koakuma.Lua
     public class LuaModule : IModule
     {
         private Script script;
-        private Closure onMessageCallback;
+        private KoakumaProxy proxy;
 
         public ModuleConfig Config { get; set; }
 
@@ -27,6 +27,7 @@ namespace Koakuma.Lua
 
         public void Load()
         {
+            proxy = new KoakumaProxy(this);
             script = new Script();
 
             var oldPath = script.Globals["package", "path"] as string;
@@ -34,26 +35,16 @@ namespace Koakuma.Lua
             var mainFile = Path.Combine(Config.Get("script_root", ""), Config.Get("main_file", ""));
 
             UserData.RegisterType<ModuleID>();
+            UserData.RegisterType<KoakumaProxy>();
             
-            script.Globals["setOnMessage"] = (Action<Closure>)SetOnMessageCallback;
-            script.Globals["sendMessage"] = (Action<ModuleID, string>)SendMessage;
+            script.Globals["koakuma"] = proxy;
 
             Koakuma.Logger.Log(LogLevel.Verbose, script.DoFile(mainFile, codeFriendlyName: mainFile));
         }
 
-        private void SetOnMessageCallback(Closure scriptFunction)
-        {
-            onMessageCallback = scriptFunction;
-        }
-
-        private void SendMessage(ModuleID receiver, string jsonMsg)
-        {
-            Koakuma.SendRawMessage(receiver, JObject.Parse(jsonMsg));
-        }
-
         public void OnMessage(ModuleID from, BaseMessage msg, byte[] payload)
         {
-            onMessageCallback.Call(from, msg.JObject.ToString(), payload);
+            proxy.CallOnMessage(from, msg, payload);
         }
 
         public void Reload()
