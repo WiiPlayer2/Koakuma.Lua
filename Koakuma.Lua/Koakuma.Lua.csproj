@@ -34,8 +34,8 @@
       <HintPath>..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Koakuma.Shared, Version=1.0.6402.30815, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Koakuma.Shared.1.0.6402.30815\lib\net452\Koakuma.Shared.dll</HintPath>
+    <Reference Include="Koakuma.Shared, Version=1.0.6403.28174, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Koakuma.Shared.1.0.6403.28174\lib\net452\Koakuma.Shared.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MessageNetwork, Version=1.0.6400.37223, Culture=neutral, processorArchitecture=MSIL">
@@ -67,6 +67,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy "$(TargetPath)" "$(appdata)\Koakuma\plugins\$(TargetFileName)" /Y</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

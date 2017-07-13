@@ -8,6 +8,7 @@ using Koakuma.Shared.Messages;
 using MoonSharp.Interpreter;
 using System.Threading;
 using System.IO;
+using Newtonsoft.Json.Linq;
 
 namespace Koakuma.Lua
 {
@@ -32,7 +33,10 @@ namespace Koakuma.Lua
             script.Globals["package", "path"] = $"{oldPath};{Config.Get("script_root", "").TrimEnd('/', '\\')}/?";
             var mainFile = Path.Combine(Config.Get("script_root", ""), Config.Get("main_file", ""));
 
+            UserData.RegisterType<ModuleID>();
+            
             script.Globals["setOnMessage"] = (Action<Closure>)SetOnMessageCallback;
+            script.Globals["sendMessage"] = (Action<ModuleID, string>)SendMessage;
 
             Koakuma.Logger.Log(LogLevel.Verbose, script.DoFile(mainFile, codeFriendlyName: mainFile));
         }
@@ -42,9 +46,14 @@ namespace Koakuma.Lua
             onMessageCallback = scriptFunction;
         }
 
+        private void SendMessage(ModuleID receiver, string jsonMsg)
+        {
+            Koakuma.SendRawMessage(receiver, JObject.Parse(jsonMsg));
+        }
+
         public void OnMessage(ModuleID from, BaseMessage msg, byte[] payload)
         {
-            onMessageCallback.Call(from, msg, payload);
+            onMessageCallback.Call(from, msg.JObject.ToString(), payload);
         }
 
         public void Reload()
